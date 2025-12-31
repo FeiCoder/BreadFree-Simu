@@ -105,13 +105,19 @@ graph TD
 2.  **配置 API Key**:
     在环境变量中设置 `HUNYUAN_API_KEY` 或在 `breadfree/utils/llm_client.py` 中修改。
 
-3.  **运行回测**:
+3.  **获取新闻数据**:
+    运行爬虫抓取目标标的（默认 300750）的近期新闻，构建事件驱动数据源。
+    ```bash
+    python breadfree/data/news_fetcher.py
+    ```
+
+4.  **运行回测**:
     ```bash
     python main.py
     ```
     *默认回测标的为宁德时代 (300750)，可在 `main.py` 中修改。*
 
-4.  **查看结果**:
+5.  **查看结果**:
     - 终端输出回测摘要。
     - 打开生成的 `backtest_result.html` 查看资金曲线。
     - 查看 `logs/llm_debug.log` 复盘智能体决策逻辑。
