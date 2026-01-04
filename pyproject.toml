@@ -1,0 +1,18 @@
+[project]
+name = "breadfree"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "akshare>=1.18.4",
+    "curl-cffi>=0.14.0",
+    "langchain-core>=1.2.5",
+    "langgraph>=1.0.5",
+    "numpy>=2.4.0",
+    "openai>=2.14.0",
+    "pandas>=2.3.3",
+    "pyecharts>=2.0.9",
+    "python-dotenv>=1.2.1",
+    "py-mini-racer==0.6.0"
+]

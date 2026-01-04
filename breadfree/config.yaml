@@ -1,0 +1,7 @@
+symbol: "588000"
+start_date: "20251101"
+end_date: "20251130"
+initial_cash: 1000000.0
+asset_type: "stock"
+lot_size: 100
+strategy: "DoubleMAStrategy" # "DoubleMAStrategy" "AgentStrategy"

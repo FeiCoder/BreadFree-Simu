@@ -164,6 +164,7 @@ class BacktestEngine:
                 yaxis_opts=opts.AxisOpts(
                     type_="value", 
                     is_scale=True, 
+                    axislabel_opts=opts.LabelOpts(formatter="{value:.0f}"),
                     splitline_opts=opts.SplitLineOpts(is_show=True)
                 ),
                 datazoom_opts=[opts.DataZoomOpts(xaxis_index=[0, 1], is_show=True)],

@@ -7,3 +7,4 @@ langchain_core
 openai
 curl_cffi
 python-dotenv
+py-mini-racer==0.6.0

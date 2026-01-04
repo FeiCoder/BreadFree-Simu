@@ -100,6 +100,7 @@ graph TD
     ```bash
     pip install uv
     uv sync
+    source .venv/bin/activate
     ```
 
 2.  **配置 API Key**:

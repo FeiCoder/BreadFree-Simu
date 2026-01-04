@@ -284,8 +284,20 @@ class AgentStrategy(Strategy):
                 available_cash = self.broker.cash
                 target_cash = available_cash * quantity_pct
                 if target_cash > 0:
+                    # 先按目标资金计算最多可买入的股数（未考虑整手）
                     max_shares = int(target_cash / (close_price * (1 + self.broker.commission_rate)))
                     quantity = (max_shares // self.lot_size) * self.lot_size
+
+                    # 边界处理：若按目标仓位计算结果为0，但账户可用现金足以购买至少一手，则按一手下单并记录警告
+                    lot_cost = close_price * self.lot_size * (1 + self.broker.commission_rate)
+                    if quantity == 0:
+                        if available_cash >= lot_cost and quantity_pct > 0:
+                            quantity = self.lot_size
+                            print(f"[{date}] Warning: target_cash insufficient for a lot, falling back to 1 lot (lot_size={self.lot_size}).")
+                        else:
+                            # 无法买入任何整手，输出调试信息
+                            print(f"[{date}] Info: target_cash={target_cash:.2f}, lot_cost={lot_cost:.2f}, available_cash={available_cash:.2f} -> no shares to buy.")
+
                     if quantity > 0:
                         self.broker.buy(date, self.symbol, close_price, quantity)
             
@@ -294,6 +306,16 @@ class AgentStrategy(Strategy):
                     pos = self.broker.positions[self.symbol]
                     quantity = int(pos.quantity * quantity_pct)
                     quantity = (quantity // self.lot_size) * self.lot_size
+
+                    # 边界处理：当计算结果为0但持仓小于整手时，允许清仓卖出（全部持仓），或当quantity_pct>0且pos.quantity>=lot_size但四舍五入为0时，提示原因
+                    if quantity == 0:
+                        # 如果持仓少于一手但用户希望卖出，允许全部卖出
+                        if pos.quantity > 0 and pos.quantity < self.lot_size:
+                            quantity = pos.quantity
+                            print(f"[{date}] Info: holding less than one lot ({pos.quantity}), selling entire position.")
+                        else:
+                            print(f"[{date}] Info: computed sell quantity is 0 (pos={pos.quantity}, quantity_pct={quantity_pct}). Skipping sell.")
+
                     if quantity > 0:
                         self.broker.sell(date, self.symbol, close_price, quantity)
 

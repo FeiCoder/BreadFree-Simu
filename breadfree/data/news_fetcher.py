@@ -6,10 +6,17 @@ import os
 import time
 
 class NewsFetcher:
-    def __init__(self, data_dir="breadfree/data/cache"):
-        self.data_dir = data_dir
+    def __init__(self, data_dir: str | None = None):
+        # 默认将缓存目录放在与本模块同级的 `cache` 文件夹中
+        if data_dir is None:
+            base_dir = os.path.dirname(__file__)
+            self.data_dir = os.path.join(base_dir, "cache")
+        else:
+            # 如果传入了相对路径或绝对路径，则按原样使用
+            self.data_dir = data_dir
+
         if not os.path.exists(self.data_dir):
-            os.makedirs(self.data_dir)
+            os.makedirs(self.data_dir, exist_ok=True)
 
     def _fetch_page(self, symbol: str, page_index: int = 1, page_size: int = 50) -> pd.DataFrame:
         """
@@ -158,7 +165,8 @@ class NewsFetcher:
         """
         df = self._fetch_page(symbol, page_index=1, page_size=50)
         if not df.empty:
-            df["date"] = pd.to_datetime(df["date"])
+            # 确保日期列为 datetime 类型，便于后续比较和格式化
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
             df.rename(columns={
                 "date": "发布时间",
                 "mediaName": "文章来源",
@@ -166,6 +174,11 @@ class NewsFetcher:
                 "content": "新闻内容",
                 "url": "新闻链接"
             }, inplace=True)
+            # 如果重命名后发布时间不是 datetime（例如 parse 失败），再转换一次以保险
+            try:
+                df["发布时间"] = pd.to_datetime(df["发布时间"], errors="coerce")
+            except Exception:
+                pass
         return df
 
     def get_recent_news_text(self, symbol: str, hours: int = 24, top_n: int = 5) -> str:
@@ -178,6 +191,10 @@ class NewsFetcher:
             
         # 筛选最近 N 小时
         cutoff_time = datetime.now() - timedelta(hours=hours)
+        # 确保发布时间列为 datetime，然后进行比较
+        if not pd.api.types.is_datetime64_any_dtype(df.get("发布时间")):
+            df["发布时间"] = pd.to_datetime(df["发布时间"], errors="coerce")
+
         recent_df = df[df["发布时间"] >= cutoff_time]
         
         if recent_df.empty:
@@ -188,21 +205,55 @@ class NewsFetcher:
             
         news_list = []
         for _, row in recent_df.iterrows():
-            time_str = row["发布时间"].strftime("%Y-%m-%d %H:%M")
-            news_list.append(f"- [{time_str}] {row['新闻标题']} ({row['文章来源']})")
+            pub = row.get("发布时间")
+            if pd.isna(pub):
+                time_str = "未知时间"
+            else:
+                # pub 可能是 pandas.Timestamp 或 datetime
+                try:
+                    time_str = pd.Timestamp(pub).strftime("%Y-%m-%d %H:%M")
+                except Exception:
+                    time_str = str(pub)
+
+            news_list.append(f"- [{time_str}] {row.get('新闻标题', '')} ({row.get('文章来源', '')})")
             
         return "\n".join(news_list)
 
 if __name__ == "__main__":
     fetcher = NewsFetcher()
-    # 测试宁德时代
-    symbol = "300750"
-    print(f"Fetching news for {symbol}...")
-    
+    # 读取配置文件 -- 在多个候选路径中查找 config.yaml（优先 breadfree/config.yaml）
+    import yaml
+    here = os.path.dirname(__file__)
+    candidates = [
+        os.path.normpath(os.path.join(here, "..", "config.yaml")),            # breadfree/config.yaml
+        os.path.normpath(os.path.join(here, "..", "..", "config.yaml")),   # repo_root/config.yaml
+        os.path.normpath(os.path.join(here, "..", "..", "breadfree", "config.yaml")),
+    ]
+
+    config = {}
+    loaded_path = None
+    for p in candidates:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    config = yaml.safe_load(f) or {}
+                    loaded_path = p
+                    print(f"Loaded config from: {p}")
+            except Exception as e:
+                print(f"Failed to parse config at {p}: {e}")
+            break
+
+    if not config:
+        print("No config.yaml found; using defaults.")
+
+    symbol = config.get("symbol", "518850")
+    max_pages = int(config.get("max_pages", 10))
+    print(f"Fetching news for {symbol} (max_pages={max_pages})...")
+
     # 1. 测试获取并保存历史新闻
-    json_path = fetcher.fetch_and_save_news(symbol, max_pages=10) # 测试抓取5页
+    json_path = fetcher.fetch_and_save_news(symbol, max_pages=max_pages)
     print(f"History saved to: {json_path}")
-    
+
     # 2. 测试获取最近新闻文本
     news_text = fetcher.get_recent_news_text(symbol)
     print("\nRecent News Context:")

@@ -18,28 +18,31 @@ def main():
     # 2. 科技成长: "300750" (宁德时代), "688981" (中芯国际)
     # 3. 稳健白马: "600519" (茅台), "600036" (招行)
     
-    symbol = STOCK_POOLS["Growth_Tech"][0] 
-    
-    # 回测最近一周，以匹配刚抓取的新闻数据
-    end_date = datetime.now().strftime("%Y%m%d")
-    start_date = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
-    initial_cash = 1000000.0
-    asset_type = "stock"
-    lot_size = 100
 
-    # Configuration for Gold (Au99.99)
-    # symbol = "Au99.99"
-    # # Shorten the period for LLM backtest to save tokens and time
-    # start_date = "20231201" 
-    # end_date = "20231205"
-    # initial_cash = 500000.0 
-    # asset_type = "gold"
-    # lot_size = 100 
+    # 读取配置文件
+    import yaml
+    config_path = os.path.join(os.path.dirname(__file__), "breadfree", "config.yaml")
+    if os.path.exists(config_path):
+        with open(config_path, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+    else:
+        config = {}
 
-    # Choose Strategy
-    # strategy_cls = DoubleMAStrategy
-    # strategy_cls = BenchmarkStrategy # Market Benchmark (Buy & Hold)
-    strategy_cls = AgentStrategy
+    symbol = config.get("symbol", "518850")
+    start_date = config.get("start_date", datetime.now().strftime("%Y%m%d"))
+    end_date = config.get("end_date", (datetime.now() - timedelta(days=30)).strftime("%Y%m%d"))
+    initial_cash = config.get("initial_cash", 1000000.0)
+    asset_type = config.get("asset_type", "stock")
+    lot_size = config.get("lot_size", 100)
+    strategy_name = config.get("strategy", "AgentStrategy")
+
+    # 策略类选择
+    strategy_map = {
+        "DoubleMAStrategy": DoubleMAStrategy,
+        "BenchmarkStrategy": BenchmarkStrategy,
+        "AgentStrategy": AgentStrategy
+    }
+    strategy_cls = strategy_map.get(strategy_name, AgentStrategy)
 
     print(f"Running backtest with {strategy_cls.__name__}...")
 
@@ -53,9 +56,8 @@ def main():
         asset_type=asset_type,
         lot_size=lot_size
     )
-    
     engine.run()
-    
+
     # Plot results (generates HTML file)
     try:
         engine.plot_results("backtest_result.html")

@@ -83,8 +83,8 @@ class DataFetcher:
 
     def fetch_a_stock_daily(self, symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
         """
-        获取A股日线数据
-        :param symbol: 股票代码，例如 '000001'
+        获取A股日线数据或ETF数据
+        :param symbol: 股票代码或ETF代码，例如 '000001' 或 '588000'
         :param start_date: 开始日期 'YYYYMMDD'
         :param end_date: 结束日期 'YYYYMMDD'
         :return: DataFrame
@@ -98,9 +98,13 @@ class DataFetcher:
 
         print(f"Fetching data for {symbol} from AkShare...")
         try:
-            # 使用 akshare 的 stock_zh_a_hist 接口
-            # symbol 需要是 6 位代码
-            df = ak.stock_zh_a_hist(symbol=symbol, period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
+            # 检查是否为ETF（以5开头）
+            if symbol.startswith('5'):
+                # 使用ETF接口
+                df = ak.fund_etf_hist_em(symbol=symbol, period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
+            else:
+                # 使用A股接口
+                df = ak.stock_zh_a_hist(symbol=symbol, period="daily", start_date=start_date, end_date=end_date, adjust="qfq")
             
             if df.empty:
                 print("Warning: No data fetched.")
