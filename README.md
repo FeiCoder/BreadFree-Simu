@@ -8,24 +8,24 @@ The system is built around a central event loop in `main.py` -> `breadfree/engin
 
 ```mermaid
 graph TD
-    CLI[main.py CLI / config.yaml] --> Engine[BacktestEngine]
-    Data[DataFetcher (AkShare)] -->|Cache & Warmup| Engine
+    CLI["main.py CLI / config.yaml"] --> Engine[BacktestEngine]
+    Data["DataFetcher (AkShare)"] -->|"Cache & Warmup"| Engine
     
-    Engine -->|On Bar (Daily)| Strategy[Strategy Interface]
+    Engine -->|"On Bar (Daily)"| Strategy[Strategy Interface]
     
     subgraph Pluggable Strategies
-    Strategy --> Rotation[RotationStrategy]
-    Strategy --> Agent[AgentStrategy (LLM)]
-    Strategy --> DMA[DoubleMAStrategy]
-    Strategy --> Bench[BenchmarkStrategy]
+        Strategy --> Rotation[RotationStrategy]
+        Strategy --> Agent["AgentStrategy (LLM)"]
+        Strategy --> DMA[DoubleMAStrategy]
+        Strategy --> Bench[BenchmarkStrategy]
     end
     
-    Rotation -->|Signals| Broker[Broker & Execution]
-    Agent -->|Signals| Broker
-    DMA -->|Signals| Broker
+    Rotation -->|"Signals"| Broker["Broker & Execution"]
+    Agent -->|"Signals"| Broker
+    DMA -->|"Signals"| Broker
     
-    Broker -->|Account State| Engine
-    Engine -->|Logs & Metrics| Output[Visualization & Reports]
+    Broker -->|"Account State"| Engine
+    Engine -->|"Logs & Metrics"| Output["Visualization & Reports"]
 ```
 
 ### Core Components used in `main.py`
