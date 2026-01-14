@@ -19,14 +19,14 @@ etf_pool:
   # "510180": "上证180ETF"      # 价值股，蓝筹股，中大盘
   # "511010": "国债ETF"         # 防守型
 
-# start_date: "20210101"
-# end_date: "20251231"
+start_date: "20210101"
+end_date: "20251231"
 
 # start_date: "20200101"
 # end_date: "20201231"
 
-start_date: "20250101"
-end_date: "20251231"
+# start_date: "20250101"
+# end_date: "20251231"
 
 initial_cash: 100000.0
 asset_type: "stock"

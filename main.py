@@ -10,7 +10,6 @@ from breadfree.engine.backtest_engine import BacktestEngine
 from breadfree.strategies.ma_strategy import DoubleMAStrategy
 from breadfree.strategies.agent_strategy import AgentStrategy
 from breadfree.strategies.benchmark_strategy import BenchmarkStrategy
-from breadfree.strategies.multi_factor_strategy import MomentumRotationStrategy
 from breadfree.strategies.rotation_strategy import RotationStrategy
 
 def main():
@@ -56,7 +55,6 @@ def main():
         "DoubleMAStrategy": DoubleMAStrategy,
         "BenchmarkStrategy": BenchmarkStrategy,
         "AgentStrategy": AgentStrategy,
-        "MomentumRotationStrategy": MomentumRotationStrategy,
         "RotationStrategy": RotationStrategy
     }
     strategy_cls = strategy_map.get(strategy_name, RotationStrategy)
