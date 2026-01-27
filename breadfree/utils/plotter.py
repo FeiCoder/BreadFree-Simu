@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from pyecharts.charts import Line, Grid
 from pyecharts import options as opts
 from .metrics import calculate_max_drawdown, calculate_sharpe_ratio
@@ -199,6 +200,8 @@ def plot_backtest_results(equity_curve, transaction_history, benchmark_series=No
         .add(line_main, grid_opts=opts.GridOpts(pos_left="5%", pos_right="5%", height="60%"))
         .add(line_drawdown, grid_opts=opts.GridOpts(pos_left="5%", pos_right="5%", pos_top="75%", height="20%"))
     )
+    if os.path.exists(os.path.dirname(filename)) is False:
+        os.makedirs(os.path.dirname(filename))
 
     grid.render(filename)
     return filename

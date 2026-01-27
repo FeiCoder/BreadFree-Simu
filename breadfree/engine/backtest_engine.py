@@ -2,9 +2,6 @@ import pandas as pd
 import os
 from datetime import datetime, timedelta
 import os
-import matplotlib.pyplot as plt
-from pyecharts.charts import Line, Grid
-from pyecharts import options as opts
 from ..data.data_fetcher import DataFetcher
 from ..data.database import get_db_manager
 from .broker import Broker
@@ -162,6 +159,12 @@ class BacktestEngine:
         # self.plot_results_png()
 
     def plot_results_png(self, filename="./output/backtest_result.png"):
+        try:
+            import matplotlib.pyplot as plt
+        except Exception as e:
+            print(f"无法导入 matplotlib，绘图功能将被跳过: {e}")
+            return
+
         if not self.broker.equity_curve:
             print("No results to plot.")
             return
